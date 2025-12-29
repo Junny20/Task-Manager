@@ -1,12 +1,14 @@
 use eframe::egui::*;
-use std::sync::mpsc::Receiver;
+use std::{sync::mpsc::Receiver, time::Duration, collections::VecDeque};
 use crate::cpusnapshot::CpuSnapshot;
 
-const GRAPH_HEIGHT_PX: f32 = 120.0;
+const ROLLING_GRAPH_HEIGHT_PX: f32 = 80.0;
+
 pub struct SystemMonitorApp {
     receiver: Receiver<CpuSnapshot>,
     latest_snapshot: Option<CpuSnapshot>,
-    overall_cpu_history: Vec<f32>,
+    per_core_cpu_history: Option<Vec<VecDeque<f32>>>,
+    overall_cpu_history: VecDeque<f32>,
 }
 
 impl SystemMonitorApp {
@@ -14,7 +16,8 @@ impl SystemMonitorApp {
         Self {
             receiver,
             latest_snapshot: None,
-            overall_cpu_history: Vec::new(),
+            overall_cpu_history: VecDeque::new(),
+            per_core_cpu_history: None,
         }
     }
 }
@@ -24,15 +27,29 @@ impl eframe::App for SystemMonitorApp {
         while let Ok(cpu_snapshot) = self.receiver.try_recv() {
             self.latest_snapshot = Some(cpu_snapshot);
             if let Some(cpu_snapshot) = &self.latest_snapshot {
-                self.overall_cpu_history.push(cpu_snapshot.overall_cpu_usage);
+                self.overall_cpu_history.push_back(cpu_snapshot.overall_cpu_usage);
                 if self.overall_cpu_history.len() > 10 {
-                    // todo!("O(n) - replace with VecDq");
-                    self.overall_cpu_history.remove(0);
+                    self.overall_cpu_history.pop_front();
+                }
+
+                if let None = &mut self.per_core_cpu_history {
+                    let n: usize = cpu_snapshot.per_core_cpu_usage.len();
+                    self.per_core_cpu_history = Some(vec![VecDeque::new(); n]);
+                }
+
+                let per_core_cpu_history: &mut Vec<VecDeque<f32>> = self.per_core_cpu_history.as_mut().unwrap();
+                for (index, value) in cpu_snapshot.per_core_cpu_usage.iter().enumerate() {
+                    let per_core_values: &mut VecDeque<f32> = &mut per_core_cpu_history[index];
+                    per_core_values.push_back(*value);
+                    if per_core_values.len() > 10 {
+                        per_core_values.pop_front();
+                    }
                 }
             }
-            ctx.request_repaint();
-            // todo!("Make request_repaint() more efficient");
         }
+        
+
+        ctx.request_repaint_after(Duration::from_millis(16)); // magic num
 
         CentralPanel::default().show(ctx, |ui| {
             ui.heading("Rust System Monitor");
@@ -72,11 +89,21 @@ impl eframe::App for SystemMonitorApp {
                 ui.group(|ui| {
                     ui.label("Rolling graph overall cpu history");
                     // allocates a rectangle size in form of length width vector
-                    let desired_size = vec2(ui.available_width(), GRAPH_HEIGHT_PX);
+                    let desired_size: Vec2 = vec2(ui.available_width(), ROLLING_GRAPH_HEIGHT_PX);
                     // creates rectangle in ui
-                    let (rect, response) = ui.allocate_exact_size(desired_size, Sense::hover());
+                    let (rect, _response): (Rect, Response) = 
+                        ui.allocate_exact_size(desired_size, Sense::hover());
                     draw_graph(&rect, ui, &self.overall_cpu_history);
                 });
+
+                for core in self.per_core_cpu_history.as_mut().unwrap() {
+                    ui.group(|ui| {
+                        let desired_size: Vec2 = vec2(ui.available_width(), ROLLING_GRAPH_HEIGHT_PX);
+                        let (rect, _response): (Rect, Response) = 
+                            ui.allocate_exact_size(desired_size, Sense::hover());
+                        draw_graph(&rect, ui, core);
+                    });
+                }
             } else {
                 ui.label("Waiting for CPU data…");
             }
@@ -84,7 +111,7 @@ impl eframe::App for SystemMonitorApp {
     }
 }
 
-fn draw_graph(rect: &Rect, ui: &mut Ui, history: &Vec<f32>) {
+fn draw_graph(rect: &Rect, ui: &mut Ui, history: &VecDeque<f32>) {
     let painter: Painter = ui.painter_at(*rect);
 
     painter.rect_filled(
@@ -112,8 +139,9 @@ fn draw_graph(rect: &Rect, ui: &mut Ui, history: &Vec<f32>) {
 }
 
 fn make_point(index: usize, value: &f32, n: usize, rect: &Rect) -> Pos2 {
-    let rect_height: f32 = rect.bottom() - rect.top();
-    let x: f32 = rect.left() + (index as f32) / ((n - 1) as f32) * rect.width();
-    let y: f32 = rect.bottom() - (value / 100.0) * rect_height; // magic num
+    let plot_rect = rect.shrink(4.0);
+    let plot_rect_height: f32 = plot_rect.bottom() - plot_rect.top();
+    let x: f32 = plot_rect.left() + (index as f32) / ((n - 1) as f32) * plot_rect.width();
+    let y: f32 = plot_rect.bottom() - (value / 100.0) * plot_rect_height; // magic num
     Pos2 { x, y }
 }

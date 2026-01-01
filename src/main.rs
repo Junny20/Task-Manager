@@ -1,7 +1,10 @@
 mod app;
 mod channel;
-mod workers;
 mod cpusnapshot;
+mod config;
+mod data;
+mod graph;
+mod workers;
 
 use app::SystemMonitorApp;
 use channel::Channel;
@@ -19,7 +22,7 @@ fn main() -> eframe::Result<()> {
     };
 
     eframe::run_native(
-        "Rust System Monitor",
+        "CPU Monitor",
         options,
         Box::new(|_cc| Ok(Box::new(SystemMonitorApp::new(receiver)))),
     )

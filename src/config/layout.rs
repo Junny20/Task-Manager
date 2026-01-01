@@ -1,0 +1,5 @@
+pub const LEFT_CELL_WIDTH_PX: f32 = 20.0;
+pub const CELL_HEIGHT_PX: f32 = 60.0;
+pub const CELL_CORNER_RADIUS_PX: f32 = 4.0;
+pub const LINE_THICKNESS_ONE_PX: f32 = 1.0;
+pub const SPACING_PX: f32 = 10.0;

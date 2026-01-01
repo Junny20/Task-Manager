@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 use eframe::egui::{Color32, Pos2, Painter, Rangef, Rect, Stroke, StrokeKind, Ui};
 use crate::config::{
     layout::{CELL_CORNER_RADIUS_PX, LINE_THICKNESS_ONE_PX}, 
-    style::{EMA_GRAPH_OPACITY, DOTTED_LINE_GAP_PX, DOTTED_LINE_LENGTH_PX, RAW_GRAPH_OPACITY},
+    style::{EMA_GRAPH_OPACITY, DOTTED_LINE_GAP_PX, DOTTED_LINE_LENGTH_PX, HALF_OPACITY},
     app_variables::{LAST_INDEX}
 };
 use crate::graph::{geometry::make_point, style::{get_color, find_stroke_width}};
@@ -27,7 +27,7 @@ pub fn draw_ui_graph(rect: &Rect, ui: &mut Ui, history: &VecDeque<f32>, ema_hist
     let half: f32 = rect.bottom() - ((rect.bottom() - rect.top()) / 2 as f32);
     draw_dotted_hline(&rect, half, &painter);
 
-    draw_line_graph(rect, history, &painter, RAW_GRAPH_OPACITY);
+    draw_line_graph(rect, history, &painter, HALF_OPACITY);
 
     if let Some(ema_history) = ema_history {
         draw_line_graph(rect, ema_history, &painter, EMA_GRAPH_OPACITY);

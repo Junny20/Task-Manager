@@ -9,5 +9,5 @@ pub const GREEN_LINE_THICKNESS: f32 = 2.0;
 pub const YELLOW_LINE_THICKNESS: f32 = 2.5;
 pub const RED_LINE_THICKNESS: f32 = 3.0;
 
-pub const EMA_GRAPH_OPACITY: u8 = 255;
-pub const RAW_GRAPH_OPACITY: u8 = 127;
+pub const EMA_GRAPH_OPACITY: u8 = 200;
+pub const HALF_OPACITY: u8 = 128;

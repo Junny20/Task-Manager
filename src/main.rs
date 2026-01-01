@@ -6,7 +6,7 @@ mod data;
 mod graph;
 mod workers;
 
-use app::SystemMonitorApp;
+use app::app::AppMonitor;
 use channel::Channel;
 use cpusnapshot::CpuSnapshot;
 
@@ -24,6 +24,6 @@ fn main() -> eframe::Result<()> {
     eframe::run_native(
         "CPU Monitor",
         options,
-        Box::new(|_cc| Ok(Box::new(SystemMonitorApp::new(receiver)))),
+        Box::new(|_cc| Ok(Box::new(AppMonitor::new(receiver)))),
     )
 }

@@ -10,15 +10,15 @@ A real-time CPU monitoring application built with Rust.
 - **System information**: Shows OS details, architecture, and hostname
 - **Color-coded indicators**: Green for low usage, yellow for medium, red for high
 
-## Screenshots
+## Screenshots in reverse chronological order
 
-![Cores with progress bar](Screenshots/Cores_with_progress_bar_1.png)
-![Cores with per core rolling graphs](Screenshots/Overall_and_per_core_rolling.png)
+![1.0 Finalized Version](Screenshots/1.0_Version.png)
+![Added new workers and process count](Screenshots/Cores_with_process_count_and_os_info.png)
+![Added progress bar and scrolling mechanism](Screenshots/Progress_bar_and_scrolling.png)
 ![Added_colour and dotted lines](Screenshots/Cores_with_color_and_dotted_line.png)
 ![Changed layout and added ema functionality](Screenshots/Cores_with_ema_and_new_layout.png)
-![Added progress bar and scrolling mechanism](Screenshots/Progress_bar_and_scrolling.png)
-![Added new workers and process count](Screenshots/Cores_with_process_count_and_os_info.png)
-![1.0 Finalized Version](Screenshots/1.0_Version.png)
+![Cores with per core rolling graphs](Screenshots/Overall_and_per_core_rolling.png)
+![Cores with progress bar](Screenshots/Cores_with_progress_bar_1.png)
 
 ## Requirements
 

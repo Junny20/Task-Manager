@@ -18,6 +18,7 @@ A real-time CPU monitoring application built with Rust.
 ![alt text](../Screenshots/Cores_with_ema_and_new_layout.png)
 ![alt text](../Screenshots/Progress_bar_and_scrolling.png)
 ![alt text](../Screenshots/Cores_with_process_count_and_os_info.png)
+![alt text](../Screenshots/1.0_Version.png)
 
 ## Requirements
 

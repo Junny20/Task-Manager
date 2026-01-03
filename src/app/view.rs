@@ -52,32 +52,24 @@ pub fn render_ui(ctx: &Context, app_monitor: &mut AppMonitor) {
     // the show method takes a closure and builds the gui
     CentralPanel::default().show(ctx, |ui| {
         ui.group(|ui| {
+            ui.vertical(|ui| {
+                ui.add_space(20.0);
+                ui.horizontal(|ui| {
+                    ui.heading("CPU Monitor");
+                    ui.add_space(50.0);
+                    ui.label(format!("Snapshots taken: {}", app_monitor.cpu_monitor.total_snapshots_received));
+                });
+            });
+
             ui.horizontal(|ui| {
-                let left_cell: Vec2 = vec2(LEFT_CELL_WIDTH_PX, CELL_HEIGHT_PX);
-                let (rect, _) = ui.allocate_exact_size(left_cell, Sense::hover());
-
-                ui.scope_builder(
-                    UiBuilder::new()
-                        .max_rect(rect)
-                        .layout(Layout::left_to_right(Align::Center)),
-                    |ui| {
-                        ui.heading("CPU Monitor");
-                    },
-                );
-
                 let right_cell: Vec2 = vec2(ui.available_width(), CELL_HEIGHT_PX);
                 let (rect, _) = ui.allocate_exact_size(right_cell, Sense::hover());
                 ui.scope_builder(
                     UiBuilder::new()
                         .max_rect(rect)
-                        .layout(Layout::right_to_left(Align::Center)),
+                        .layout(Layout::left_to_right(Align::Center)),
                     |ui| {
-                        ui.label("Average Usage: ");
-                        ui.add_space(50.0);
-                        ui.label(format!(
-                            "Processes: {}",
-                            app_monitor.process_monitor.processes
-                        ));
+                        ui.label(format!("{}", app_monitor.system_monitor.host_name));
                         ui.add_space(50.0);
                         ui.label(format!(
                             "OS: {} {} {}",
@@ -86,7 +78,12 @@ pub fn render_ui(ctx: &Context, app_monitor: &mut AppMonitor) {
                             app_monitor.system_monitor.system_architecture
                         ));
                         ui.add_space(50.0);
-                        ui.label(format!("{}", app_monitor.system_monitor.host_name));
+                        ui.label(format!(
+                            "Processes: {}",
+                            app_monitor.process_monitor.processes
+                        ));
+                        ui.add_space(50.0);
+                        ui.label(format!("Average Usage: {:>5.1}%", app_monitor.cpu_monitor.average_cpu_usage));
                     },
                 )
             })

@@ -12,12 +12,15 @@ use crate::{
 /// Stores all relevant cpu data produced from consuming a CpuSnapshot structure.
 /// Note: ema stands for exponential moving average.
 pub struct CpuMonitor {
+    pub average_cpu_usage: f32,
+    pub cumulative_cpu_usage: f32,
     pub per_core_cpu_history: Option<Vec<VecDeque<f32>>>,
     pub per_core_ema_cpu_history: Option<Vec<VecDeque<f32>>>,
     pub per_core_previous_ema: Vec<Option<f32>>,
     pub previous_ema: Option<f32>,
     pub overall_cpu_history: VecDeque<f32>,
     pub overall_ema_cpu_history: VecDeque<f32>,
+    pub total_snapshots_received: i128,
 }
 
 impl CpuMonitor {
@@ -32,6 +35,8 @@ impl CpuMonitor {
     // arrives.
     pub fn new() -> CpuMonitor {
         CpuMonitor {
+            average_cpu_usage: 0.0,
+            cumulative_cpu_usage: 0.0,
             per_core_cpu_history: None,
             per_core_ema_cpu_history: None,
             per_core_previous_ema: Vec::with_capacity(CORES_UPPER_LIMIT),
@@ -39,13 +44,13 @@ impl CpuMonitor {
             // uses with_capacity instead of new constructor to reduce heap reallocations.
             overall_cpu_history: VecDeque::with_capacity(CORES_UPPER_LIMIT),
             overall_ema_cpu_history: VecDeque::with_capacity(CORES_UPPER_LIMIT),
+            total_snapshots_received: 0,
         }
     }
 
     /// Takes in a CpuSnapshot struct and updates the fields in CpuMonitor.
     ///
     /// * Parameters
-    /// `self` mutable reference to self
     /// `cpu_snapshot` CpuSnapshot structure
 
     // INVARIANTS:
@@ -53,6 +58,8 @@ impl CpuMonitor {
     // exponential moving average is guaranteed to exist after the first cpu snapshot.
     // history charts have a maximum of 10 data points - that is what MAX_LINE_GRAPH_POINTS refers to.
     pub fn cpu_monitor_apply_cpu_snapshot(&mut self, cpu_snapshot: CpuSnapshot) {
+        self.adjust_average_cpu_usage(&cpu_snapshot);
+
         self.overall_cpu_history_add_point(&cpu_snapshot);
         self.overall_ema_cpu_history_add_point(&cpu_snapshot);
 
@@ -69,6 +76,16 @@ impl CpuMonitor {
         self.per_core_ema_cpu_history_add_point();
 
         self.per_core_cpu_history_add_point(&cpu_snapshot);
+    }
+
+    /// Adjusts average cpu usage
+    /// 
+    /// * Parameters
+    /// `cpu_snapshot` CpuSnapshot structure 
+    fn adjust_average_cpu_usage(&mut self, cpu_snapshot: &CpuSnapshot) {
+        self.total_snapshots_received += 1;
+        self.cumulative_cpu_usage += cpu_snapshot.overall_cpu_usage;
+        self.average_cpu_usage = self.cumulative_cpu_usage / self.total_snapshots_received as f32;
     }
 
     /// Adds a data point to the overall CPU history.
